@@ -6,7 +6,7 @@ import(
 	"runtime"
 )
 var commands = map[string]string{
-	"windows": "start",
+	"windows": "explorer",
 	"darwin":  "open",
 	"linux":   "xdg-open",
 }

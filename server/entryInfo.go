@@ -23,6 +23,7 @@ func UpdateCode() string{
 		if err != nil {
 			panic(err)
 		}
+		fi.Close()
 		//fmt.Println(n)
 		return nil
 	})

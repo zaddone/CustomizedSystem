@@ -9,6 +9,8 @@ import(
 	"fmt"
 	"strings"
 	"strconv"
+	//"path/filepath"
+	//"path"
 	//"database/sql"
 	"time"
 	//"math/rand"
@@ -161,12 +163,13 @@ func loadRouter(){
 		if err != nil {
 			panic(err)
 		}
+		imgc := UpdateCode()
 		c.HTML(http.StatusOK,
 		"login.tmpl",
 		gin.H{
 		"username":Conf.UserInfo.Get("username"),
 		"password":Conf.UserInfo.Get("password"),
-		"codeimg":UpdateCode()})
+		"codeimg":strings.Replace(imgc,"\\","/",-1)})
 	})
 	Router.GET("/show",func(c *gin.Context){
 
