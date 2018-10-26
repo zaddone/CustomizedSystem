@@ -1,0 +1,42 @@
+{{define "login.tmpl"}}
+<!doctype html>
+<html lang="en">
+<head>
+{{template "head" .}}
+<link href="https://v4.bootcss.com/docs/4.0/examples/sign-in/signin.css" rel="stylesheet">
+</head>
+<body class="text-center">
+ <form class="form-signin" method="post" action="/verification"  >
+      <img class="mb-4" src="https://getbootstrap.com/assets/brand/bootstrap-solid.svg" alt="" width="72" height="72">
+      <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
+<div class="input-group">
+      <label for="Username" class="sr-only">Username</label>
+      <input type="text" id="userName" class="form-control" placeholder="Username" name="username" value="{{.username}}" required autofocus>
+</div>
+<div class="input-group">
+      <label for="inputPassword" class="sr-only">Password</label>
+      <input type="password" id="inputPassword" class="form-control" placeholder="Password" name="password" value="{{.password}}" required>
+</div>
+<div class="input-group">
+  <div class="input-group-prepend">
+	<img src="{{.codeimg}}" width = "61" height="20" />
+
+  </div>
+  <input type="text" class="form-control" id="basic-url" name="codeimg" aria-describedby="basic-addon3">
+</div>
+
+<div class="input-group">
+      <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+</div>
+</form>
+ 
+{{template "footer" .}}
+
+
+<script>
+
+</script>
+
+</body>
+</html>
+{{end}}

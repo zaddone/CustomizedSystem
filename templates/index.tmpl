@@ -1,0 +1,163 @@
+{{define "index.tmpl"}}
+<!doctype html>
+<html lang="en">
+<head>
+{{template "head" .}}
+</head>
+<body>
+{{template "top" .}}
+<!-- Begin page content -->
+ 
+<main role="main" class="container">
+<div class="alert alert-secondary" role="alert" id="title" data-datetime="">
+
+</div>
+
+<div class="container scrollspy-example" id="con"  >
+
+
+</div>	    
+</main>
+{{template "footer" .}} 
+
+<script>
+//var ListDB = new Array();
+function GetOption(db){
+	//len = ListDB.length;
+	//ListDB.push(db);
+	switch (db.style){
+	case 0:
+		return '<div class="input-group"  id="db'+db.Id+'" data-id="'+db.Id+'" ><div class="input-group-prepend"><select class="custom-select" id="style" onchange="sele_Change('+db.Id+')" ><option selected value = "0" ></option><option value = "1" >标题</option><option value = "2" >内容</option></select></div><textarea class="form-control" aria-label="With textarea">'+db.db+'</textarea></div>';
+	case 1:
+		return '<hr class="my-4" ><div class="input-group"  id="db'+db.Id+'" data-id="'+db.Id+'" ><div class="input-group-prepend"><select class="custom-select" id="style" onchange="sele_Change('+db.Id+')"><option value = "0" ></option><option selected value = "1" >标题</option><option value = "2" >内容</option></select></div><textarea class="form-control" aria-label="With textarea">'+db.db+'</textarea><button id="button'+db.Id+'" onclick="SaveDB('+db.Id+')" class="btn btn-outline-secondary" type="button" >save</button></div>';
+	case 2:
+		return '<div class="input-group"  id="db'+db.Id+'" data-id="'+db.Id+'"><div class="input-group-prepend"><select class="custom-select" id="style" onchange="sele_Change('+db.Id+')" ><option value = "0" ></option><option value = "1" >标题</option><option value = "2" selected >内容</option></select></div><textarea class="form-control"  aria-label="With textarea">'+db.db+'</textarea></div>';
+	}
+}
+function removeSelf(id){
+	var modle = $("#db"+id);
+	//var next = modle;
+	while(true){
+		next = modle.next();
+		if (next.length <= 0){
+			break;
+		}
+		if (next.attr("class")!="my-4"){		
+			modle.remove();
+			modle = next;
+		}else{
+			modle.remove();
+			modle = next;
+			break;
+		}
+	}
+	modle.remove();
+};
+function sele_Change(id){
+	modle = $("#db"+id);
+	//alert(modle.find("select").val());
+	val = modle.find("select").val()
+	if (val === "1") {
+		modle.before('<hr class="my-4" >');
+		modle.append('<button data-id="'+id+'" onclick="SaveDB('+id+')" class="btn btn-outline-secondary" type="button" >save</button>');
+	}else if (val === "0"){
+		pr = modle.prev();
+		if (pr.attr("class") === "my-4"){
+			pr.remove();
+		}
+		modle.find('button').remove();
+	}else if (val === "2"){
+		pr = modle.prev();
+		if (pr.attr("class") === "my-4"){
+			pr.remove();
+		}
+		modle.find('button').remove();
+	}
+}
+function SaveDB(id){
+	var modle = $("#db"+id);
+	db = new Map();
+	title = modle.find("textarea").val();
+	endid = modle.find("select").val();
+	ids = [modle.data("id")];
+	var content="";
+	while(true){
+		modle = modle.next();
+		if (modle.length <= 0){
+			break
+		}
+		tt = modle.find("textarea");
+		if (tt.length <= 0){
+			break
+		}
+		val = tt.val();
+		select = modle.find("select").val();
+		if (select==="0"){
+			continue;
+		}
+		if (val){
+			if (val !=""){
+				ids.push(modle.data("id"));
+				content+='<p>'+val+'</p>';
+			}	
+		}else{
+			break;
+		}
+	};
+	//console.log(title);
+	//console.log(content);
+	//console.log(ids);
+
+	$.post("/savesite",{"title":title,"content":content,"ids":ids,"date":$('#title').data("datetime")},
+	function(data,status){		
+		removeSelf(id);	
+		$(".msg").empty();
+		$(".msg").append('<div class="alert alert-primary alert-dismissible fade show" role="alert"><strong>Success</strong>'+title+'<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');	
+	});
+}
+function sleep(n) { //n表示的毫秒数
+            var start = new Date().getTime();
+            while (true) if (new Date().getTime() - start > n) break;
+        }
+function SaveTimeOut(){
+	var bu = $('#con').find("button:first");
+	if (bu.length > 0){
+		bu.click();
+		setTimeout("SaveTimeOut()",1000);
+	}
+}
+$(function(){
+	$.getJSON('/show',function(data) {
+		$('#title').text(data.title);
+		$('#title').attr("data-datetime",data.baseTime);
+		data.Con.forEach(function(db){
+			$('#con').append(GetOption(db)); 				
+		});		
+	});
+	$('#saveall').click(function(){
+		SaveTimeOut();
+/**
+		$('#con').find('button').each(function(){
+			//buttonlist.push(this);
+			$(this).click();
+			//sleep(1000);
+			setTimeout();
+		});
+		count = 0;
+		$('#con').find('button').each(function(){
+			count++;
+		});
+		if (count===0){
+			alert("load new page");
+			location.replace(location.href);
+		}
+**/
+	});
+	$("select").bind("change",function(){
+		alert("load new page");
+	})
+});
+</script>
+</body>
+</html>
+{{end}}
