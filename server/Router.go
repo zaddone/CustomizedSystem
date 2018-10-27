@@ -26,6 +26,30 @@ func loadRouter(){
 	Router.GET("/",func(c *gin.Context){
 		c.HTML(http.StatusOK,"index.tmpl",nil)
 	})
+	//Router.GET("/codeimg",func(c *gin.Context){
+	//	c.Header("Content-Type", "image/jpeg;charset=utf-8")
+	//	img:=""
+	//	var buf [1024]byte
+	//	err := ClientHttp(codeurl,"GET",200,nil,func(body io.Reader)error{
+	//		for{
+	//			n,err := body.Read(buf[0:])
+	//			img+= string(buf[:n])
+	//			if err != nil {
+	//				if err == io.EOF {
+	//					return nil
+	//				}else{
+	//					return err
+	//				}
+	//			}
+	//		}
+	//		return nil
+	//	})
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//	c.String(http.StatusOK,img,nil)
+	//})
+
 	Router.POST("/savesite",func(c *gin.Context){
 		title := c.PostForm("title")
 		if title == "" {

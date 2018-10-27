@@ -12,7 +12,7 @@ import(
 	//"sync"
 )
 var (
-	EntryList = make(chan *Entry,1000)
+	EntryList chan *Entry = make(chan *Entry,1000)
 	//EntrySync  sync.Mutex
 )
 type PostDB struct {
@@ -47,19 +47,19 @@ type Entry struct {
 	Con []*Content
 }
 
+func (self *Entry) DelDB_(db *sql.DB)(err error){
+	_,err = db.Exec("DELETE FROM content WHERE entryid = ? ",self.Id)
+	if err != nil {
+		return
+		//panic(err)
+	}
+	_,err = db.Exec("DELETE FROM entry WHERE id = ?",self.Id)
+	return
+}
 func (self *Entry) DelDB()(err error){
 
 	HandDB(Conf.DbPath,func(db *sql.DB){
-		_,err = db.Exec("DELETE FROM content WHERE entryid = ? ",self.Id)
-		if err != nil {
-			return
-			//panic(err)
-		}
-		_,err = db.Exec("DELETE FROM entry WHERE id = ?",self.Id)
-		if err != nil {
-			return
-			//panic(err)
-		}
+		err = self.DelDB_(db)
 	})
 	return
 
@@ -131,19 +131,24 @@ func ReadAllEntrys(db *sql.DB,hand func(*Entry)) {
 	rows.Close()
 }
 func LoadEntryChan() {
-	var err error
+	//var err error
+	var tmpen []*Entry
 	HandDB(Conf.DbPath,func(db *sql.DB){
 		ReadAllEntrys(db,func(en *Entry){
+			fmt.Println(en)
 			if !en.CheckContent() {
-				err = en.DelDB()
-				if err != nil {
-					panic(err)
-				}
+				tmpen = append(tmpen,en)
+				//err = en.DelDB_(db)
+				//if err != nil {
+				//	panic(err)
+				//}
 			}else{
-				//fmt.Println(en)
 				EntryList <- en
 			}
 		})
+		for _,en := range tmpen {
+			en.DelDB_(db)
+		}
 	})
 }
 

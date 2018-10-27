@@ -56,6 +56,7 @@ type _row interface{
 	Scan(dest ...interface{}) error
 }
 func init(){
+	EntryList = make(chan *Entry,1000)
 	flag.Parse()
 	Conf = NewConfig(*FileName)
 	//KvDB, err := bolt.Open(KvDB, 0600, nil)
@@ -68,6 +69,7 @@ func init(){
 	}
 	//Jar,err := cookiejar.New(&cookiejar.Options{PublicSuffixList:publicsuffix.List})
 	//TmpEntrys = make(chan *Entry,1000)
+	fmt.Println("start")
 	Jar,_ = cookiejar.New(nil)
 	LoadEntryChan()
 	go loadRouter()
