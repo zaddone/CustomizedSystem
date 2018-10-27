@@ -13,7 +13,7 @@
 
 </div>
 
-<div class="container scrollspy-example" id="con"  >
+<div class="container scrollspy-example" id="con" data-id="" >
 
 
 </div>	    
@@ -29,7 +29,7 @@ function GetOption(db){
 	case 0:
 		return '<div class="input-group"  id="db'+db.Id+'" data-id="'+db.Id+'" ><div class="input-group-prepend"><select class="custom-select" id="style" onchange="sele_Change('+db.Id+')" ><option selected value = "0" ></option><option value = "1" >标题</option><option value = "2" >内容</option></select></div><textarea class="form-control" aria-label="With textarea">'+db.db+'</textarea></div>';
 	case 1:
-		return '<hr class="my-4" ><div class="input-group"  id="db'+db.Id+'" data-id="'+db.Id+'" ><div class="input-group-prepend"><select class="custom-select" id="style" onchange="sele_Change('+db.Id+')"><option value = "0" ></option><option selected value = "1" >标题</option><option value = "2" >内容</option></select></div><textarea class="form-control" aria-label="With textarea">'+db.db+'</textarea><button id="button'+db.Id+'" onclick="SaveDB('+db.Id+')" class="btn btn-outline-secondary" type="button" >save</button></div>';
+		return '<hr class="my-4" ><div class="input-group"  id="db'+db.Id+'" data-id="'+db.Id+'" ><div class="input-group-prepend"><select class="custom-select" id="style" onchange="sele_Change('+db.Id+')"><option value = "0" ></option><option selected value = "1" >标题</option><option value = "2" >内容</option></select></div><textarea class="form-control" aria-label="With textarea">'+db.db+'</textarea><button data-id="'+db.Id+'" onclick="SaveDB('+db.Id+')" class="btn btn-outline-secondary" type="button" >save</button></div>';
 	case 2:
 		return '<div class="input-group"  id="db'+db.Id+'" data-id="'+db.Id+'"><div class="input-group-prepend"><select class="custom-select" id="style" onchange="sele_Change('+db.Id+')" ><option value = "0" ></option><option value = "1" >标题</option><option value = "2" selected >内容</option></select></div><textarea class="form-control"  aria-label="With textarea">'+db.db+'</textarea></div>';
 	}
@@ -75,8 +75,15 @@ function sele_Change(id){
 	}
 }
 function SaveDB(id){
+	$.post("/savesite",GetDB(id),
+	function(data,status){		
+		removeSelf(id);	
+		$(".msg").empty();
+		$(".msg").append('<div class="alert alert-primary alert-dismissible fade show" role="alert"><strong>Success</strong>'+title+'<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');	
+	});
+}
+function GetDB(id){
 	var modle = $("#db"+id);
-	db = new Map();
 	title = modle.find("textarea").val();
 	endid = modle.find("select").val();
 	ids = [modle.data("id")];
@@ -104,29 +111,27 @@ function SaveDB(id){
 			break;
 		}
 	};
-	//console.log(title);
-	//console.log(content);
-	//console.log(ids);
-
-	$.post("/savesite",{"title":title,"content":content,"ids":ids,"date":$('#title').data("datetime")},
-	function(data,status){		
-		removeSelf(id);	
-		$(".msg").empty();
-		$(".msg").append('<div class="alert alert-primary alert-dismissible fade show" role="alert"><strong>Success</strong>'+title+'<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');	
-	});
+	return {"title":title,"content":content,"ids":ids,"date":$('#title').data("datetime")};
 }
-function sleep(n) { //n表示的毫秒数
-            var start = new Date().getTime();
-            while (true) if (new Date().getTime() - start > n) break;
-        }
 function SaveTimeOut(){
-	var bu = $('#con').find("button:first");
-	if (bu.length > 0){
-		bu.click();
-		setTimeout("SaveTimeOut()",1000);
+	bu = $('#con').find("button:first");
+	console.log(bu);
+	if ( bu.length >0 && bu.html() !="" ){
+		id = bu.data("id")
+		$.post("/savesite",GetDB(id),
+		function(data,status){		
+			removeSelf(id);	
+			$(".msg").empty();
+			$(".msg").append('<div class="alert alert-primary alert-dismissible fade show" role="alert"><strong>Success</strong>'+title+'<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>');
+			SaveTimeOut()
+		});
+	}else{
+		$('#con').empty();
+		alert("loading new data");
+		show();
 	}
 }
-$(function(){
+function show(){
 	$.getJSON('/show',function(data) {
 		$('#title').text(data.title);
 		$('#title').attr("data-datetime",data.baseTime);
@@ -134,28 +139,13 @@ $(function(){
 			$('#con').append(GetOption(db)); 				
 		});		
 	});
+}
+$(function(){
+	show()
 	$('#saveall').click(function(){
 		SaveTimeOut();
-/**
-		$('#con').find('button').each(function(){
-			//buttonlist.push(this);
-			$(this).click();
-			//sleep(1000);
-			setTimeout();
-		});
-		count = 0;
-		$('#con').find('button').each(function(){
-			count++;
-		});
-		if (count===0){
-			alert("load new page");
-			location.replace(location.href);
-		}
-**/
+
 	});
-	$("select").bind("change",function(){
-		alert("load new page");
-	})
 });
 </script>
 </body>

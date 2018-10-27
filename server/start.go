@@ -23,6 +23,8 @@ import(
 	//"path/filepath"
 	"strings"
 	"sync"
+	"os/exec"
+	"runtime"
 )
 
 const(
@@ -36,7 +38,20 @@ var (
 	Conf *Config
 	Jar *cookiejar.Jar
 	LastStr []byte = []byte("LastEntry")
+	commands = map[string]string{
+		"windows": "explorer",
+		"darwin":  "open",
+		"linux":   "xdg-open",
+	}
 )
+func Open(uri string) error {
+	run,ok := commands[runtime.GOOS]
+	if !ok {
+		return fmt.Errorf("don't know how to open things on %s platform", runtime.GOOS)
+	}
+	cmd := exec.Command(run,uri)
+	return cmd.Start()
+}
 type _row interface{
 	Scan(dest ...interface{}) error
 }
@@ -57,10 +72,7 @@ func init(){
 	LoadEntryChan()
 	go loadRouter()
 
-
-
-
-	//go runColl()
+	go runColl()
 }
 
 func createDB(){

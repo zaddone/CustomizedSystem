@@ -11,7 +11,7 @@ import(
 	"strconv"
 	//"path/filepath"
 	//"path"
-	//"database/sql"
+	"database/sql"
 	"time"
 	//"math/rand"
 	//"strings"
@@ -53,11 +53,11 @@ func loadRouter(){
 			return
 		}
 
-		//err =  HandDBForBack(Conf.DbPath,func(db *sql.DB) error {
-		//	sql_ := fmt.Sprintf("DELETE FROM content WHERE id in (%s) ",strings.Join(ids,","))
-		//	_,err = db.Exec(sql_)
-		//	return err
-		//})
+		err =  HandDBForBack(Conf.DbPath,func(db *sql.DB) error {
+			sql_ := fmt.Sprintf("DELETE FROM content WHERE id in (%s) ",strings.Join(ids,","))
+			_,err = db.Exec(sql_)
+			return err
+		})
 
 		c.JSON(http.StatusOK,gin.H{"msg":"Success"})
 		return
@@ -114,6 +114,8 @@ func loadRouter(){
 		}
 	})
 	Router.POST("/verification",func(c *gin.Context){
+
+		c.Header("Content-Type", "text/html; charset=utf-8")
 		Conf.UserInfo.Set("username",c.DefaultPostForm("username",Conf.UserInfo.Get("username")))
 		Conf.UserInfo.Set("password",c.DefaultPostForm("password",Conf.UserInfo.Get("password")))
 		Conf.UserInfo.Set("randCode",c.PostForm("codeimg"))
@@ -142,19 +144,19 @@ func loadRouter(){
 
 		})
 		if err != nil {
-			c.JSON(http.StatusNotFound,err.Error())
+			c.String(http.StatusOK,err.Error(),nil)
 			return
 		}
 
 		if isOk {
 			err = LoginSite()
 			if err != nil {
-				c.JSON(http.StatusNotFound,err.Error())
+				c.String(http.StatusOK,err.Error(),nil)
 			}else{
-				c.Redirect(http.StatusMovedPermanently,"/")
+				c.String(http.StatusOK,"<!DOCTYPE html><html><script language='javascript' type='text/javascript'>window.location.href='/';</script></html>",nil)
 			}
 		}else{
-			c.Redirect(http.StatusMovedPermanently,"/login")
+			c.String(http.StatusOK,"<!DOCTYPE html><html><script language='javascript' type='text/javascript'>window.location.href='/login';</script></html>",nil)
 		}
 		return
 	})

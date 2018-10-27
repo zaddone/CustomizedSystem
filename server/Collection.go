@@ -11,6 +11,7 @@ import(
 	"net/http"
 	"encoding/json"
 	"time"
+	"log"
 )
 var (
 	reg *regexp.Regexp = regexp.MustCompile("\\s+")
@@ -40,7 +41,6 @@ func ReadList(body io.Reader)error{
 			line = line[lenkey:len(line)-1]
 			err = json.Unmarshal([]byte(line),&db_)
 			if err != nil {
-				fmt.Println(line)
 				panic(err)
 			}
 
@@ -99,31 +99,37 @@ func Collection() {
 			return err
 		}
 		key := res.Request.PostForm.Get("query")
-
+		var href_url string
+		exit := false
 		doc.Find(".news-list2 li").EachWithBreak(func(i int, s *goquery.Selection)bool {
 
 			text := reg.ReplaceAllString(s.Find(".txt-box").Text(),"")
 			fmt.Println(text,key)
 			if strings.Contains(text,key){
-				href_url,exit :=s.Find(".txt-box .tit a").Attr("href")
+				href_url,exit =s.Find(".txt-box .tit a").Attr("href")
 				if exit {
 					fmt.Println(href_url,exit)
-					ClientDo(href_url,func(body io.Reader,res *http.Response)error{
-						err = ReadList(body)
-						if err != nil {
-							panic(err)
-						}
-						return nil
+					err = ClientDo(href_url,func(body io.Reader,res *http.Response)error{
+						return ReadList(body)
 					})
 					return false
 				}
 			}
 			return true
 		})
-		return nil
+		if !exit {
+			err = Open(Conf.WeixinUrl)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+		return err
 	})
 	if err != nil {
-		panic(err)
+		err = Open(Conf.WeixinUrl)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 
 }
