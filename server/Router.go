@@ -28,13 +28,13 @@ func loadRouter(){
 	})
 	Router.GET("/codeimg",func(c *gin.Context){
 		c.Header("Content-Type", "image/jpeg;charset=utf-8")
-		img:=""
+		var img []byte
 		var buf [1024]byte
 		err := ClientHttp(codeurl,"GET",200,nil,func(body io.Reader)error{
 			//bufi := bufio.NewReader(body)
 			for{
 				n,err := body.Read(buf[0:])
-				img+= string(buf[:n])
+				img= append(img,buf[:n]...)
 				if err != nil {
 					if err == io.EOF {
 						return nil
@@ -48,8 +48,7 @@ func loadRouter(){
 		if err != nil {
 			panic(err)
 		}
-		
-		c.String(http.StatusOK,img,nil)
+		c.Data(http.StatusOK,"image/jpeg;charset=utf-8",img)
 	})
 
 	Router.POST("/savesite",func(c *gin.Context){
@@ -191,13 +190,14 @@ func loadRouter(){
 		if err != nil {
 			panic(err)
 		}
-		imgc := UpdateCode()
+		//imgc := UpdateCode()
 		c.HTML(http.StatusOK,
 		"login.tmpl",
 		gin.H{
 		"username":Conf.UserInfo.Get("username"),
 		"password":Conf.UserInfo.Get("password"),
-		"codeimg":strings.Replace(imgc,"\\","/",-1)})
+		//"codeimg":strings.Replace(imgc,"\\","/",-1)})
+		})
 	})
 	Router.GET("/show",func(c *gin.Context){
 

@@ -74,7 +74,7 @@ func init(){
 	LoadEntryChan()
 	go loadRouter()
 
-	go runColl()
+	//go runColl()
 }
 
 func createDB(){

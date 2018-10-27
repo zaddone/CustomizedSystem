@@ -19,7 +19,7 @@
 </div>
 <div class="input-group">
   <div class="input-group-prepend">
-	<img src="{{.codeimg}}" width = "61" height="20" />
+	<img src="/codeimg" id="codeimg"  width = "61" height="20" />
 
   </div>
   <input type="text" class="form-control" id="basic-url" name="codeimg" aria-describedby="basic-addon3">
@@ -34,6 +34,12 @@
 
 
 <script>
+$(function(){
+	$("#codeimg").bind("click",function(){
+		$(this).attr("src","/codeimg?rnd=" + Math.random());
+	})
+})
+
 
 </script>
 

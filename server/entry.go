@@ -135,7 +135,7 @@ func LoadEntryChan() {
 	var tmpen []*Entry
 	HandDB(Conf.DbPath,func(db *sql.DB){
 		ReadAllEntrys(db,func(en *Entry){
-			fmt.Println(en)
+			//fmt.Println(en)
 			if !en.CheckContent() {
 				tmpen = append(tmpen,en)
 				//err = en.DelDB_(db)

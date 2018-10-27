@@ -95,7 +95,7 @@ func Collection() {
 	err := ClientDo(Conf.WeixinUrl,func(body io.Reader,res *http.Response)error{
 		doc,err := goquery.NewDocumentFromReader(body)
 		if err != nil {
-			fmt.Println(err)
+			//fmt.Println(err)
 			return err
 		}
 		key := res.Request.PostForm.Get("query")
@@ -104,7 +104,7 @@ func Collection() {
 		doc.Find(".news-list2 li").EachWithBreak(func(i int, s *goquery.Selection)bool {
 
 			text := reg.ReplaceAllString(s.Find(".txt-box").Text(),"")
-			fmt.Println(text,key)
+			//fmt.Println(text,key)
 			if strings.Contains(text,key){
 				href_url,exit =s.Find(".txt-box .tit a").Attr("href")
 				if exit {
