@@ -72,17 +72,30 @@ func loadRouter(){
 			c.JSON(http.StatusNotFound,"ids is nil")
 			return
 		}
-		err = SaveSiteDB(title,content,int64(dateTime))
-		if err != nil {
-			c.JSON(http.StatusNotFound,err.Error())
-			return
-		}
 
 		err =  HandDBForBack(Conf.DbPath,func(db *sql.DB) error {
+			row:= db.QueryRow("SELECT id FROM content WHERE id = ?",ids[0])
+			var id_ int64
+			err =  row.Scan(&id_)
+			if err != nil {
+				return err
+			}
+			err = SaveSiteDB(title,content,int64(dateTime))
+			if err != nil {
+				return err
+			}
 			sql_ := fmt.Sprintf("DELETE FROM content WHERE id in (%s) ",strings.Join(ids,","))
 			_,err = db.Exec(sql_)
-			return err
+			if err != nil {
+				panic(err)
+			}
+
+			return nil
 		})
+		if err != nil {
+			c.JSON(http.StatusNotFound,gin.H{"msg":err})
+			return
+		}
 
 		c.JSON(http.StatusOK,gin.H{"msg":"Success"})
 		return

@@ -9,6 +9,7 @@ import(
 	//"bufio"
 	"github.com/boltdb/bolt"
 	"net/http"
+	"time"
 	//"sync"
 )
 var (
@@ -114,8 +115,8 @@ func (self *Entry) SaveDB(){
 	EntryList <- self
 }
 func ReadAllEntrys(db *sql.DB,hand func(*Entry)) {
-	//var lastEn,en *Entry
-	rows,err := db.Query("SELECT id,title,url,baseTime,beginTime,endTime,site FROM entry")
+	d, _ := time.ParseDuration("-24h")
+	rows,err := db.Query("SELECT id,title,url,baseTime,beginTime,endTime,site FROM entry WHERE baseTime > ? ORDER BY id DESC",time.Now().Add(d*7).Unix())
 	if err != nil {
 		panic(err)
 	}
@@ -130,18 +131,15 @@ func ReadAllEntrys(db *sql.DB,hand func(*Entry)) {
 	}
 	rows.Close()
 }
+
 func LoadEntryChan() {
 	//var err error
-	var tmpen []*Entry
 	HandDB(Conf.DbPath,func(db *sql.DB){
+		var tmpen []*Entry
 		ReadAllEntrys(db,func(en *Entry){
 			//fmt.Println(en)
 			if !en.CheckContent() {
 				tmpen = append(tmpen,en)
-				//err = en.DelDB_(db)
-				//if err != nil {
-				//	panic(err)
-				//}
 			}else{
 				EntryList <- en
 			}
@@ -152,23 +150,6 @@ func LoadEntryChan() {
 	})
 }
 
-func GetNoneEntrys(db *sql.DB,hand func(*Entry)) {
-	//TmpEntrys = make(chan *Entry,10)
-	rows,err := db.Query("SELECT id,title,url,baseTime,beginTime,endTime,site FROM entry WHERE beginTime = endTime")
-	if err != nil {
-		panic(err)
-	}
-	for rows.Next() {
-		en := &Entry{}
-		err = en.LoadDB_(rows,db)
-		if err != nil {
-			panic(err)
-		}
-		hand(en)
-		//TmpEntrys <- en
-	}
-	rows.Close()
-}
 func GetLastEntry(db *sql.DB) (en *Entry) {
 	row := db.QueryRow("SELECT id,title,url,baseTime,beginTime,endTime,site FROM entry order by id desc limit 1")
 	en = &Entry{}

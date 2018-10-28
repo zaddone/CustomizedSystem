@@ -56,7 +56,7 @@ type _row interface{
 	Scan(dest ...interface{}) error
 }
 func init(){
-	EntryList = make(chan *Entry,1000)
+	//EntryList = make(chan *Entry,1000)
 	flag.Parse()
 	Conf = NewConfig(*FileName)
 	//KvDB, err := bolt.Open(KvDB, 0600, nil)
