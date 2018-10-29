@@ -2,4 +2,4 @@
 *.db
 *.exe
 main
-.*.go.swp
+/server/.*.go.swp
