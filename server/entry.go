@@ -112,7 +112,7 @@ func (self *Entry) SaveDB(){
 	if err != nil {
 		panic(err)
 	}
-	EntryList <- self
+	//EntryList <- self
 }
 func ReadAllEntrys(db *sql.DB,hand func(*Entry)) {
 	d, _ := time.ParseDuration("-24h")

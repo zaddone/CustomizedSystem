@@ -83,6 +83,9 @@ func ReadList(body io.Reader)error{
 				//fmt.Println(Ens[i])
 				Ens[i].HandContent()
 			}
+			for _,en := range Ens {
+				EntryList <- en
+			}
 			fmt.Println("over")
 			//GetNoneEntrys(db)
 		}
