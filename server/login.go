@@ -81,12 +81,10 @@ func inSite1(_url string) error {
 					for _,d := range db_{
 						if d["name"].(string) == "招聘求职"{
 							ClassID = d["id"].(string)
+							return nil
 						}
 					}
-					if ClassID == "" {
-						panic("--")
-					}
-					return nil
+					panic("--")
 				}
 			}
 			return nil
