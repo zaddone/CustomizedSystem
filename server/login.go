@@ -6,7 +6,12 @@ import(
 	"net/url"
 	"time"
 	"math/rand"
-	//"bufio"
+	"bufio"
+	"strings"
+	"encoding/json"
+)
+var (
+	ClassID string
 )
 
 func LoginSite() error {
@@ -43,22 +48,74 @@ func inSite1(_url string) error {
 		return err
 	}
 	q:= con_.Query()
-	//q.Set("fn",q_.Get("fn"))
-	q.Set("fn","jclongquanyiqu/longquanjiedao")
+	q.Set("fn",q_.Get("fn"))
+	//q.Set("fn","jclongquanyiqu/longquanjiedao")
 	return  ClientHttp(con_.Scheme +"://"+con_.Host+"/"+con_.Path+"?"+q.Encode(),"GET",200,nil,func(body io.Reader)error{
 		rand.Seed(time.Now().UnixNano())
 		q.Set("r_",fmt.Sprintf("%.16f",rand.Float64()))
-		return ClientHttp(con_.Scheme +"://"+con_.Host+"/uycyw/uymanage/tree/menutree.htm?"+q.Encode(),"GET",200,nil,nil)
+		return ClientHttp(con_.Scheme +"://"+con_.Host+"/uycyw/uymanage/tree/menutree.htm?"+q.Encode(),"GET",200,nil,func(body io.Reader)error{
+
+			buf := bufio.NewReader(body)
+			key := "varzNodes="
+			keyLen := len(key)
+			for{
+				line,err := buf.ReadString('\n')
+				if err != nil {
+					if err == io.EOF {
+						break
+					}
+					panic(err)
+				}
+				line = reg.ReplaceAllString(line,"")
+				if len(line) <= keyLen{
+					continue
+				}
+				//fmt.Println(line)
+				if strings.Contains(line[:keyLen],key){
+					db_:=[]map[string]interface{}{}
+					line = line[keyLen:len(line)-1]
+					err = json.Unmarshal([]byte(line),&db_)
+					if err != nil {
+						panic(err)
+					}
+					for _,d := range db_{
+						if d["name"].(string) == "招聘求职"{
+							ClassID = d["id"].(string)
+						}
+					}
+					if ClassID == "" {
+						panic("--")
+					}
+					return nil
+				}
+			}
+			return nil
+		})
 	})
 }
 func SaveSiteDB(title string,content string,dateTime int64) error {
+
+	isPost:= false
+	_u :=user_info.Get("username")
+	for _, u := range Conf.UserArr {
+		if u == _u {
+			isPost =true
+		}
+	}
+	if !isPost {
+		return fmt.Errorf("post err")
+	}
+	//if !Conf.Post {
+	//	return fmt.Errorf("post err")
+	//}
+
 
 	//da :=time.Unix(dateTime,0).Add(time.Hour*24*7)
 	//time.Now()
 	da :=time.Now().Add(time.Hour*24*7)
 	db := map[string]string{
 		"IMAGEPATH":"",
-		"ClassID":"3002090507",
+		"ClassID":ClassID,
 		"USERTYPE":"1",
 		"TITLE":StyleReg.ReplaceAllString(title,""),
 		"Content":content,
@@ -71,6 +128,7 @@ func SaveSiteDB(title string,content string,dateTime int64) error {
 		"TEL":"",
 		"EMAIL":"",
 		"ADDRESS":""}
+	//fmt.Println(db)
 	//db.Add("IMAGEPATH","")
 	//db.Add("ClassID","3002090507")
 	//db.Add("USERTYPE","1")

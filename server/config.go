@@ -15,6 +15,7 @@ type Config struct {
 	Header http.Header
 	WeixinUrl string
 	UserInfo *url.Values
+	UserArr []string
 	//Site []*SitePage
 }
 func (self *Config) Save(fileName string){
@@ -34,9 +35,10 @@ func NewConfig(fileName string)  *Config {
 	_,err := os.Stat(fileName)
 	if err != nil {
 		c.UserInfo=&url.Values{
-		"username":[]string{"lqylqjd"},
-		"password":[]string{"cd123456"},
-		"randCode":[]string{"123"}}
+		"username":[]string{""},
+		"password":[]string{""},
+		"randCode":[]string{""}}
+		c.UserArr=[]string{"lqylqjd","lqylxhsq","lqyyhsq","lqyjpc"}
 		c.Proxy = ""
 		c.KvDbPath="MyKV.db"
 		c.Static = "static"

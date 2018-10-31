@@ -12,11 +12,14 @@ import(
 	//"path/filepath"
 	//"path"
 	"database/sql"
-	"time"
+	//"time"
 	//"math/rand"
 	//"strings"
 	//"log"
 	//"fmt"
+)
+var (
+	user_info = &url.Values{}
 )
 
 func loadRouter(){
@@ -24,7 +27,7 @@ func loadRouter(){
 	Router.Static("/static","./static")
 	Router.LoadHTMLGlob(Conf.Templates)
 	Router.GET("/",func(c *gin.Context){
-		c.HTML(http.StatusOK,"index.tmpl",nil)
+		c.HTML(http.StatusOK,"index.tmpl",gin.H{"user":user_info.Get("username")})
 	})
 	Router.GET("/codeimg",func(c *gin.Context){
 		c.Header("Content-Type", "image/jpeg;charset=utf-8")
@@ -102,66 +105,16 @@ func loadRouter(){
 
 
 	})
-	Router.GET("/savetest",func(c *gin.Context){
-		err := SaveSiteDB("test___","点击蓝框查看",time.Now().Unix())
-		if err != nil {
-			c.JSON(http.StatusOK,err.Error())
-		}else{
-			c.JSON(http.StatusOK,"over")
-		}
-	})
-	Router.GET("/savedb",func(c *gin.Context){
-		db := &url.Values{}
-		db.Add("IMAGEPATH","")
-		db.Add("ClassID","3002090507")
-		db.Add("USERTYPE","1")
-		db.Add("TITLE",fmt.Sprintf("title_%d",time.Now().Unix()))
-		db.Add("Content","content")
-		db.Add("ENDTIME",time.Now().Format("2006-01-02"))
-		db.Add("id","")
-		db.Add("ID","")
-		db.Add("sw","")
-		db.Add("p","")
-		db.Add("UnitNo","")
-		db.Add("TEL","")
-		db.Add("EMAIL","")
-		db.Add("ADDRESS","")
-		db.Add("ID","")
-		fmt.Println(db.Encode())
-		save:="http://jcpt.chengdu.gov.cn/uycyw/SupplyAndDemand/save.jsp"
-		h := Conf.Header
-		h.Add("Referer","http://jcpt.chengdu.gov.cn/uycyw/SupplyAndDemand/edit.jsp?ClassID=3002090507&sw=&id=")
-		err := ClientHttp_(save,"POST",200,db,h,func(body io.Reader)error{
-			buf := bufio.NewReader(body)
-			for{
-				line,err := buf.ReadString('\n')
-				if err != nil {
-					fmt.Println(err)
-					if err == io.EOF {
-						break
-					}
-					return err
-				}
-				fmt.Println(len(line),line)
-			}
-			return nil
-		})
-		if err != nil {
-			c.JSON(http.StatusNotFound,err.Error())
-			return
-		}
-	})
 	Router.POST("/verification",func(c *gin.Context){
-
 		c.Header("Content-Type", "text/html; charset=utf-8")
-		Conf.UserInfo.Set("username",c.DefaultPostForm("username",Conf.UserInfo.Get("username")))
-		Conf.UserInfo.Set("password",c.DefaultPostForm("password",Conf.UserInfo.Get("password")))
-		Conf.UserInfo.Set("randCode",c.PostForm("codeimg"))
-		fmt.Println(Conf.UserInfo.Encode())
+		user_info.Set("username",c.DefaultPostForm("username",Conf.UserInfo.Get("username")))
+		user_info.Set("password",c.DefaultPostForm("password",Conf.UserInfo.Get("password")))
+		user_info.Set("randCode",c.PostForm("codeimg"))
+		//fmt.Println(Conf.UserInfo.Encode())
 		key := "window.location.href"
-		read := "/cdform/cdmanage/vjsp/main.jsp?fn=jclongquanyiqu/longquanjiedao"
+		read := "/cdform/cdmanage/vjsp/main.jsp"
 		isOk := false
-		err := ClientHttp(inurl,"POST",200,Conf.UserInfo,func(body io.Reader)error{
+		err := ClientHttp(inurl,"POST",200,user_info,func(body io.Reader)error{
 			buf := bufio.NewReader(body)
 			for{
 				line,err := buf.ReadString('\n')

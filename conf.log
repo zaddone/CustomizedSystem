@@ -5,6 +5,7 @@ KvDbPath = "MyKV.db"
 Templates = "./templates/*"
 Static = "static"
 WeixinUrl = "https://weixin.sogou.com/weixin?type=1&s_from=input&query=longquanjy&ie=utf8"
+UserArr = ["lqylqjd", "lqylxhsq", "lqyyhsq", "lqyjpc"]
 
 [Header]
   Accept = ["text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"]
@@ -15,6 +16,6 @@ WeixinUrl = "https://weixin.sogou.com/weixin?type=1&s_from=input&query=longquanj
   User-Agent = ["Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/58.0.3029.110 Chrome/58.0.3029.110 Safari/537.36"]
 
 [UserInfo]
-  password = ["cd123456"]
-  randCode = ["123"]
-  username = ["lqylqjd"]
+  password = [""]
+  randCode = [""]
+  username = [""]

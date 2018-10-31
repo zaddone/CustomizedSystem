@@ -30,5 +30,6 @@ func main(){
 	for{
 		fmt.Scanf("%s",&cmd)
 		fmt.Println(cmd)
+		cmd = ""
 	}
 }
