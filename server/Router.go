@@ -1,6 +1,7 @@
 package server
 import(
 	"github.com/gin-gonic/gin"
+	"github.com/boltdb/bolt"
 	//"github.com/PuerkitoBio/goquery"
 	"net/http"
 	"net/url"
@@ -29,6 +30,48 @@ func loadRouter(){
 	Router.GET("/",func(c *gin.Context){
 		c.HTML(http.StatusOK,"index.tmpl",gin.H{"user":user_info.Get("username")})
 	})
+	if *mamage {
+		Router.GET("/showuser",func(c *gin.Context){
+
+			var user []string
+			err := _viewKvDB(UserKvj,func(b *bolt.Bucket)error{
+				return b.ForEach(func(k []byte,v []byte)error{
+					user = append(user,string(k))
+					return nil
+				})
+			})
+
+
+			c.JSON(http.StatusOK,gin.H{"us":user,"msg":err})
+			return
+		})
+		Router.GET("/deluser/:u",func(c *gin.Context){
+			user := c.Param("u")
+			err := _updateKvDB(UserKvj,func(b *bolt.Bucket)error{
+				return b.Delete([]byte(strings.ToLower(user)))
+			})
+			if err != nil {
+				c.JSON(http.StatusOK,gin.H{"u":user,"msg":err})
+			}else{
+				c.JSON(http.StatusOK,gin.H{"u":user,"msg":"success"})
+			}
+			return
+
+		})
+		Router.GET("/adduser/:u",func(c *gin.Context){
+			user := c.Param("u")
+			err := _updateKvDB(UserKvj,func(b *bolt.Bucket)error{
+				return b.Put([]byte(strings.ToLower(user)),[]byte{'t'})
+			})
+			if err != nil {
+				c.JSON(http.StatusOK,gin.H{"u":user,"msg":err})
+			}else{
+				c.JSON(http.StatusOK,gin.H{"u":user,"msg":"success"})
+			}
+			return
+
+		})
+	}
 	Router.GET("/codeimg",func(c *gin.Context){
 		c.Header("Content-Type", "image/jpeg;charset=utf-8")
 		var img []byte
@@ -107,8 +150,8 @@ func loadRouter(){
 	})
 	Router.POST("/verification",func(c *gin.Context){
 		c.Header("Content-Type", "text/html; charset=utf-8")
-		user_info.Set("username",c.DefaultPostForm("username",Conf.UserInfo.Get("username")))
-		user_info.Set("password",c.DefaultPostForm("password",Conf.UserInfo.Get("password")))
+		user_info.Set("username",c.PostForm("username"))
+		user_info.Set("password",c.PostForm("password"))
 		user_info.Set("randCode",c.PostForm("codeimg"))
 		//fmt.Println(Conf.UserInfo.Encode())
 		key := "window.location.href"
@@ -160,8 +203,8 @@ func loadRouter(){
 		c.HTML(http.StatusOK,
 		"login.tmpl",
 		gin.H{
-		"username":Conf.UserInfo.Get("username"),
-		"password":Conf.UserInfo.Get("password"),
+		"username":"",
+		"password":"",
 		//"codeimg":strings.Replace(imgc,"\\","/",-1)})
 		})
 	})

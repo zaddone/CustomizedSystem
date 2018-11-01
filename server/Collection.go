@@ -15,6 +15,8 @@ import(
 )
 var (
 	reg *regexp.Regexp = regexp.MustCompile("\\s+")
+	regTitle *regexp.Regexp = regexp.MustCompile(`[\p{Han}\w\pP]+`)
+	//reg *regexp.Regexp = regexp.MustCompile(`[\s| ]+`)
 	tagReg *regexp.Regexp = regexp.MustCompile("\\p{^Han}")
 	StyleReg *regexp.Regexp = regexp.MustCompile("\\d{1,2}-\\d{1,2}$")
 )
@@ -45,7 +47,7 @@ func ReadList(body io.Reader)error{
 			}
 
 			var LastEntTitle string
-			err = ViewKvDB(Conf.KvDbPath,func(b *bolt.Bucket)error{
+			err = ViewKvDB(Conf.DeduPath,func(b *bolt.Bucket)error{
 				//fmt.Println(LastStr)
 				val :=b.Get(LastStr)
 				if len(val)>0{

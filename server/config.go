@@ -1,7 +1,7 @@
 package server
 import(
 	"net/http"
-	"net/url"
+	//"net/url"
 	"github.com/BurntSushi/toml"
 	"os"
 )
@@ -10,12 +10,14 @@ type Config struct {
 	Port string
 	DbPath string
 	KvDbPath string
+	DeduPath string
 	Templates string
 	Static string
 	Header http.Header
 	WeixinUrl string
-	UserInfo *url.Values
-	UserArr []string
+	Coll bool
+	//UserInfo *url.Values
+	//UserArr []string
 	//Site []*SitePage
 }
 func (self *Config) Save(fileName string){
@@ -34,13 +36,15 @@ func NewConfig(fileName string)  *Config {
 	var c Config
 	_,err := os.Stat(fileName)
 	if err != nil {
-		c.UserInfo=&url.Values{
-		"username":[]string{""},
-		"password":[]string{""},
-		"randCode":[]string{""}}
-		c.UserArr=[]string{"lqylqjd","lqylxhsq","lqyyhsq","lqyjpc"}
+		//c.UserInfo=&url.Values{
+		//"username":[]string{""},
+		//"password":[]string{""},
+		//"randCode":[]string{""}}
+		//c.UserArr=[]string{"lqylqjd","lqylxhsq","lqyyhsq","lqyjpc"}
+		c.Coll = true
 		c.Proxy = ""
 		c.KvDbPath="MyKV.db"
+		c.DeduPath="dedu.db"
 		c.Static = "static"
 		c.Port=":8080"
 		c.DbPath = "foo.db"

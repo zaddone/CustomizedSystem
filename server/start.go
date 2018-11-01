@@ -34,10 +34,12 @@ const(
 var (
 	DBMutex  sync.Mutex
 	FileName   = flag.String("c", "conf.log", "config log")
+	mamage   = flag.Bool("m", false, "mamage mode")
 	Router *gin.Engine
 	Conf *Config
 	Jar *cookiejar.Jar
 	LastStr []byte = []byte("LastEntry")
+	UserKvj []byte = []byte("userlist")
 	commands = map[string]string{
 		"windows": "explorer",
 		"darwin":  "open",
@@ -58,6 +60,7 @@ type _row interface{
 func init(){
 	//EntryList = make(chan *Entry,1000)
 	flag.Parse()
+	fmt.Println(*mamage)
 	Conf = NewConfig(*FileName)
 	//KvDB, err := bolt.Open(KvDB, 0600, nil)
 	//if err != nil {
@@ -74,7 +77,9 @@ func init(){
 	LoadEntryChan()
 	go loadRouter()
 
-	go runColl()
+	if Conf.Coll {
+		go runColl()
+	}
 }
 
 func createDB(){
@@ -319,7 +324,38 @@ func ClientDo(path string, hand func(io.Reader,*http.Response)error) error {
 	return err
 
 }
+func _updateKvDB(bucket []byte,handle func(*bolt.Bucket) error ) error {
+	KvDB, err := bolt.Open(Conf.KvDbPath, 0600, &bolt.Options{Timeout: 1 * time.Second})
+	if err != nil {
+		return err
+	}
+	err = KvDB.Update(func(tx *bolt.Tx) error {
+		b, err := tx.CreateBucketIfNotExists(bucket)
+		if err != nil {
+			return err
+		}
+		return handle(b)
+	})
+	KvDB.Close()
+	return err
+}
 
+func _viewKvDB(bucket []byte,handle func(*bolt.Bucket)error) error {
+	KvDB, err := bolt.Open(Conf.KvDbPath, 0600, &bolt.Options{Timeout: 1 * time.Second})
+	if err != nil {
+		return err
+	}
+	err = KvDB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket(bucket)
+		if b== nil {
+			return nil
+		}
+		return handle(b)
+	})
+	KvDB.Close()
+	return err
+
+}
 func ViewKvDB(dbfile string,handle func(*bolt.Bucket)error) error {
 	KvDB, err := bolt.Open(dbfile, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {

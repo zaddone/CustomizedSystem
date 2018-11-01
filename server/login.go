@@ -1,8 +1,10 @@
 package server
 import(
+	"regexp"
 	"io"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/boltdb/bolt"
 	"net/url"
 	"time"
 	"math/rand"
@@ -81,10 +83,13 @@ func inSite1(_url string) error {
 					for _,d := range db_{
 						if d["name"].(string) == "招聘求职"{
 							ClassID = d["id"].(string)
-							return nil
+							//return nil
 						}
 					}
-					panic("--")
+					if ClassID == ""{
+						panic("--")
+					}
+					return nil
 				}
 			}
 			return nil
@@ -94,12 +99,13 @@ func inSite1(_url string) error {
 func SaveSiteDB(title string,content string,dateTime int64) error {
 
 	isPost:= false
-	_u :=user_info.Get("username")
-	for _, u := range Conf.UserArr {
-		if u == _u {
-			isPost =true
+	_viewKvDB(UserKvj,func(b *bolt.Bucket)error{
+		v := b.Get([]byte(strings.ToLower(user_info.Get("username"))))
+		if len(v)>0 {
+			isPost = true
 		}
-	}
+		return nil
+	})
 	if !isPost {
 		return fmt.Errorf("post err")
 	}
@@ -110,12 +116,20 @@ func SaveSiteDB(title string,content string,dateTime int64) error {
 
 	//da :=time.Unix(dateTime,0).Add(time.Hour*24*7)
 	//time.Now()
+	title = strings.Join(regTitle.FindAllString(title,-1),"")
+	_reg := regexp.MustCompile("招聘|求职")
+	k := _reg.FindAllString(title, -1)
+	if len(k)==0{
+		title = StyleReg.ReplaceAllString(title,"招聘信息")
+	}else{
+		title = StyleReg.ReplaceAllString(title,"")
+	}
 	da :=time.Now().Add(time.Hour*24*7)
 	db := map[string]string{
 		"IMAGEPATH":"",
 		"ClassID":ClassID,
 		"USERTYPE":"1",
-		"TITLE":StyleReg.ReplaceAllString(title,""),
+		"TITLE":title,
 		"Content":content,
 		"ENDTIME":da.Format("2006-01-02"),
 		"id":"",
@@ -126,7 +140,8 @@ func SaveSiteDB(title string,content string,dateTime int64) error {
 		"TEL":"",
 		"EMAIL":"",
 		"ADDRESS":""}
-	//fmt.Println(db)
+	fmt.Println(db)
+	//return fmt.Errorf("==")
 	//db.Add("IMAGEPATH","")
 	//db.Add("ClassID","3002090507")
 	//db.Add("USERTYPE","1")

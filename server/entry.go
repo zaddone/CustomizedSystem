@@ -105,7 +105,7 @@ func (self *Entry) SaveDB(){
 			panic(err)
 		}
 	})
-	err := UpdateKvDB(Conf.KvDbPath,func(b *bolt.Bucket)error{
+	err := UpdateKvDB(Conf.DeduPath,func(b *bolt.Bucket)error{
 		b.Put(LastStr,[]byte(self.Title))
 		return nil
 	})
