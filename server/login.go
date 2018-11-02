@@ -140,7 +140,7 @@ func SaveSiteDB(title string,content string,dateTime int64) error {
 		"TEL":"",
 		"EMAIL":"",
 		"ADDRESS":""}
-	fmt.Println(db)
+	//fmt.Println(db)
 	//return fmt.Errorf("==")
 	//db.Add("IMAGEPATH","")
 	//db.Add("ClassID","3002090507")

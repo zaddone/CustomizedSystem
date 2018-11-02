@@ -402,12 +402,14 @@ func HandDB(dbfile string,handle func(*sql.DB)){
 
 func HandDBForBack(dbfile string,handle func(*sql.DB) error) (err error){
 
+	DBMutex.Lock()
 	DB,err := sql.Open(DBType,dbfile)
 	if err != nil {
 		return err
 	}
 	err = handle(DB)
 	DB.Close()
+	DBMutex.Unlock()
 	return
 
 }
