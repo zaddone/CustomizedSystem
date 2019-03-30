@@ -12,6 +12,8 @@ import(
 	"encoding/json"
 	"time"
 	"log"
+	//"math"
+	"math/rand"
 )
 var (
 	reg *regexp.Regexp = regexp.MustCompile("\\s+")
@@ -20,6 +22,36 @@ var (
 	tagReg *regexp.Regexp = regexp.MustCompile("\\p{^Han}")
 	StyleReg *regexp.Regexp = regexp.MustCompile("\\d{1,2}-\\d{1,2}$")
 )
+
+func WeixinUrlEnc(body io.Reader)error{
+	key := "url+='"
+	lenkey := len(key)
+	buf := bufio.NewReader(body)
+	var _url string
+	for{
+		line,err := buf.ReadString('\n')
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			panic(err)
+		}
+		line = reg.ReplaceAllString(line,"")
+		//fmt.Println(line)
+		n := strings.Index(line,key)
+		if n != -1 {
+			line = line[(n+lenkey):]
+			_url += line[:strings.Index(line,"'")]
+		}
+		if len(line) < lenkey {
+			continue
+		}
+	}
+	return ClientHttp(_url,"GET",200,nil, func(body io.Reader)error {
+		return ReadList(body)
+	})
+
+}
 func ReadList(body io.Reader)error{
 	//var err error
 	//var tmpEntrys []*Entry
@@ -35,6 +67,7 @@ func ReadList(body io.Reader)error{
 			panic(err)
 		}
 		line = reg.ReplaceAllString(line,"")
+		//fmt.Println(line)
 		if len(line) < lenkey {
 			continue
 		}
@@ -97,7 +130,13 @@ func ReadList(body io.Reader)error{
 }
 func Collection() {
 
-	err := ClientDo(Conf.WeixinUrl,func(body io.Reader,res *http.Response)error{
+	err := ClientDo("https://weixin.sogou.com/websearch/wexinurlenc_sogou_profile.jsp",nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err = ClientDo(Conf.WeixinUrl,func(body io.Reader,res *http.Response)error{
 		doc,err := goquery.NewDocumentFromReader(body)
 		if err != nil {
 			//fmt.Println(err)
@@ -107,15 +146,20 @@ func Collection() {
 		var href_url string
 		exit := false
 		doc.Find(".news-list2 li").EachWithBreak(func(i int, s *goquery.Selection)bool {
-
 			text := reg.ReplaceAllString(s.Find(".txt-box").Text(),"")
 			//fmt.Println(text,key)
 			if strings.Contains(text,key){
 				href_url,exit =s.Find(".txt-box .tit a").Attr("href")
 				if exit {
-					fmt.Println(href_url,exit)
-					err = ClientDo(href_url,func(body io.Reader,res *http.Response)error{
-						return ReadList(body)
+					rand.Seed(time.Now().UnixNano())
+					b := rand.Intn(90)
+					//a := href_url[5+23+b]
+					href_url = fmt.Sprintf("https://weixin.sogou.com%s&k=%d&h=%s",href_url,b,string(href_url[strings.Index(href_url,"url=")+4+23+b]))
+					//err = ClientDo(href_url,func(body io.Reader,res *http.Response)error{
+					header := Conf.Header
+					header.Add("Referer",Conf.WeixinUrl)
+					err=ClientHttp_(href_url,"GET",200,nil,header, func(body io.Reader)error {
+						return WeixinUrlEnc(body)
 					})
 					return false
 				}

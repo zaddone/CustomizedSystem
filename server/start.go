@@ -76,10 +76,10 @@ func init(){
 	Jar,_ = cookiejar.New(nil)
 	LoadEntryChan()
 	go loadRouter()
-
 	if Conf.Coll {
 		go runColl()
 	}
+
 }
 
 func createDB(){
@@ -293,13 +293,19 @@ func ClientDo(path string, hand func(io.Reader,*http.Response)error) error {
 		return err
 	}
 	Req.Header = Conf.Header
-	var Client http.Client
-	res, err := Client.Do(Req)
+
+	fmt.Println(path)
+	Cli := &http.Client{Jar:Jar}
+	res, err := Cli.Do(Req)
+	//var Client http.Client
+	//res, err := Client.Do(Req)
 	if err != nil {
 		log.Println(err)
 		time.Sleep(time.Second*5)
 		return ClientDo(path,hand)
 	}
+
+	fmt.Println(Req.URL,Jar.Cookies(Req.URL))
 	if res.StatusCode != 200 {
 		var da [1024]byte
 		n,err := res.Body.Read(da[0:])

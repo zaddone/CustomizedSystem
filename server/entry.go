@@ -189,19 +189,20 @@ func (self *Entry) HandContent(){
 			str := reg.ReplaceAllString(text,"")
 			str = strings.TrimSpace(str)
 			if str == "" {
+				styleId = 1
 				return true
 			}
 
-			switch styleId {
-			case 1:
-				styleId = 2
-			default:
-				fi := StyleReg.FindAllString(str,-1)
-				if len(fi)==1 {
-					styleId = 1
-				}
-			}
-			if str == "赞赏" {
+			//switch styleId {
+			//case 1:
+			//	styleId = 2
+			//default:
+			//	fi := StyleReg.FindAllString(str,-1)
+			//	if len(fi)==1 {
+			//		styleId = 1
+			//	}
+			//}
+			if str == "关注" {
 				return false
 			}
 			var tag []string
@@ -214,6 +215,9 @@ func (self *Entry) HandContent(){
 				Style:styleId,
 				Db:str,
 				Tag:strings.Join(tag," ")})
+			if styleId == 1 {
+				styleId ++
+			}
 			//fmt.Println(tag)
 			return true
 
