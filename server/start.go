@@ -305,7 +305,7 @@ func ClientDo(path string, hand func(io.Reader,*http.Response)error) error {
 		return ClientDo(path,hand)
 	}
 
-	fmt.Println(Req.URL,Jar.Cookies(Req.URL))
+	//fmt.Println(Req.URL,Jar.Cookies(Req.URL))
 	if res.StatusCode != 200 {
 		var da [1024]byte
 		n,err := res.Body.Read(da[0:])

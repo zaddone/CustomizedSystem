@@ -8,6 +8,7 @@ import(
 	"github.com/boltdb/bolt"
 	//"database/sql"
 	"strings"
+	"strconv"
 	"net/http"
 	"encoding/json"
 	"time"
@@ -130,18 +131,37 @@ func ReadList(body io.Reader)error{
 }
 func Collection() {
 
-	err := ClientDo("https://weixin.sogou.com/websearch/wexinurlenc_sogou_profile.jsp",nil)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	//err := ClientDo("https://weixin.sogou.com/websearch/wexinurlenc_sogou_profile.jsp",nil)
+	//if err != nil {
+	//	fmt.Println(err)
+	//	return
+	//}
 
-	err = ClientDo(Conf.WeixinUrl,func(body io.Reader,res *http.Response)error{
+	err := ClientDo(Conf.WeixinUrl,func(body io.Reader,res *http.Response)error{
 		doc,err := goquery.NewDocumentFromReader(body)
 		if err != nil {
 			//fmt.Println(err)
 			return err
 		}
+
+		k:= "this.href.substr(a+4+parseInt("
+		var str string
+		var val int64
+		doc.Find("script").EachWithBreak(func(i int,s *goquery.Selection)bool {
+			str = s.Text()
+			n := strings.Index(str,k)
+			if n != -1{
+				n+=len(k)+1
+				//fmt.Println(str,n,str[n:(n+2)])
+				val,err = strconv.ParseInt(str[n:(n+2)],10,64)
+				if err != nil {
+					panic(err)
+				}
+				//fmt.Println(str,val)
+				return false
+			}
+			return true
+		})
 		key := res.Request.PostForm.Get("query")
 		var href_url string
 		exit := false
@@ -154,7 +174,7 @@ func Collection() {
 					rand.Seed(time.Now().UnixNano())
 					b := rand.Intn(90)
 					//a := href_url[5+23+b]
-					href_url = fmt.Sprintf("https://weixin.sogou.com%s&k=%d&h=%s",href_url,b,string(href_url[strings.Index(href_url,"url=")+4+23+b]))
+					href_url = fmt.Sprintf("https://weixin.sogou.com%s&k=%d&h=%s",href_url,b,string(href_url[strings.Index(href_url,"url=")+4+int(val)+b]))
 					//err = ClientDo(href_url,func(body io.Reader,res *http.Response)error{
 					header := Conf.Header
 					header.Add("Referer",Conf.WeixinUrl)
@@ -175,6 +195,7 @@ func Collection() {
 		return err
 	})
 	if err != nil {
+		fmt.Println(err)
 		err = Open(Conf.WeixinUrl)
 		if err != nil {
 			log.Println(err)
