@@ -17,7 +17,12 @@ var (
 )
 
 func LoginSite() error {
-	err := ClientHttp("http://jcpt.chengdu.gov.cn/cdform/cdmanage/frameset/welcome.jsp","GET",200,nil,func(body io.Reader)error{
+
+	u,err := url.Parse("http://jcpt.chengdu.gov.cn/cdform/cdmanage/frameset/welcome.jsp")
+	if err != nil {
+		panic(err)
+	}
+	err = ClientHttp(u.String(),"GET",200,nil,func(body io.Reader)error{
 		doc,err := goquery.NewDocumentFromReader(body)
 		if err != nil {
 			return err
@@ -26,7 +31,7 @@ func LoginSite() error {
 		doc.Find(".work ul li h3 a").EachWithBreak(func(i int, s *goquery.Selection)bool {
 			if s.Text() =="内容发布" {
 				hr,_ = s.Attr("href")
-				err = inSite1(hr)
+				err = inSite1("http://jcpt.chengdu.gov.cn/cdform/cdmanage/frameset/"+hr)
 				//fmt.Println(w2)
 				return false
 			}
@@ -40,61 +45,139 @@ func LoginSite() error {
 	return err
 }
 func inSite1(_url string) error {
-	cdform_,err := url.Parse(_url)
-	if err != nil {
-		return err
-	}
-	q_ := cdform_.Query()
-	con_,err := url.Parse(q_.Get("url"))
-	if err != nil {
-		return err
-	}
-	q:= con_.Query()
-	q.Set("fn",q_.Get("fn"))
-	//q.Set("fn","jclongquanyiqu/longquanjiedao")
-	return  ClientHttp(con_.Scheme +"://"+con_.Host+"/"+con_.Path+"?"+q.Encode(),"GET",200,nil,func(body io.Reader)error{
-		rand.Seed(time.Now().UnixNano())
-		q.Set("r_",fmt.Sprintf("%.16f",rand.Float64()))
-		return ClientHttp(con_.Scheme +"://"+con_.Host+"/uycyw/uymanage/tree/menutree.htm?"+q.Encode(),"GET",200,nil,func(body io.Reader)error{
 
-			buf := bufio.NewReader(body)
-			key := "varzNodes="
-			keyLen := len(key)
-			for{
-				line,err := buf.ReadString('\n')
-				if err != nil {
-					if err == io.EOF {
-						break
-					}
-					panic(err)
-				}
-				line = reg.ReplaceAllString(line,"")
-				if len(line) <= keyLen{
-					continue
-				}
-				//fmt.Println(line)
-				if strings.Contains(line[:keyLen],key){
-					db_:=[]map[string]interface{}{}
-					line = line[keyLen:len(line)-1]
-					err = json.Unmarshal([]byte(line),&db_)
+	//time.Sleep(time.Second*5)
+	tu := "http://jcpt.chengdu.gov.cn/uycyw/front/back/notice.jsp?fn=null"
+
+	return  ClientHttp(tu,"GET",200,nil,func(body io.Reader)error{
+	return ClientHttp(_url,"GET",200,nil,func(body io.Reader)error{
+		doc,err := goquery.NewDocumentFromReader(body)
+		if err != nil {
+			return err
+		}
+		u,b := doc.Find("iframe").Attr("src")
+		//fmt.Println(_url)
+		fmt.Println(u,b)
+		con_,err := url.Parse(u)
+		if err != nil {
+			return err
+		}
+		//fmt.Println(con_.RequestURI())
+		qu := con_.Query()
+		q := url.Values{}
+		q.Set("Artifact",qu.Get("Artifact"))
+		q.Set("fn",qu.Get("fn"))
+		return  ClientHttp(u,"GET",200,nil,func(body io.Reader)error{
+			rand.Seed(time.Now().UnixNano())
+			q.Set("r_",fmt.Sprintf("%.16f",rand.Float64()))
+			return ClientHttp(con_.Scheme +"://"+con_.Host+"/uycyw/uymanage/tree/menutree.htm?"+q.Encode(),"GET",200,nil,func(body io.Reader)error{
+				buf := bufio.NewReader(body)
+				key := "varzNodes="
+				keyLen := len(key)
+				for{
+					line,err := buf.ReadString('\n')
 					if err != nil {
+						if err == io.EOF {
+							break
+						}
 						panic(err)
 					}
-					for _,d := range db_{
-						if d["name"].(string) == "招聘求职"{
-							ClassID = d["id"].(string)
-							//return nil
+					line = reg.ReplaceAllString(line,"")
+					if len(line) <= keyLen{
+						continue
+					}
+					//fmt.Println(line)
+					if strings.Contains(line[:keyLen],key){
+						db_:=[]map[string]interface{}{}
+						line = line[keyLen:len(line)-1]
+						err = json.Unmarshal([]byte(line),&db_)
+						if err != nil {
+							panic(err)
 						}
+						for _,d := range db_{
+							if d["name"].(string) == "招聘求职"{
+								ClassID = d["id"].(string)
+								//return nil
+							}
+						}
+						if ClassID == ""{
+							panic("--")
+						}
+						return nil
 					}
-					if ClassID == ""{
-						panic("--")
-					}
-					return nil
 				}
-			}
-			return nil
+				return nil
+			})
 		})
 	})
+	})
+
+	//if err != nil {
+	//	return err
+	//}
+	//cdform_,err := url.Parse(_url)
+	//if err != nil {
+	//	return err
+	//}
+	//q_ := cdform_.Query()
+	////con_ :=q_.Get("url")
+	//con_,err := url.Parse(q_.Get("url"))
+	//if err != nil {
+	//	return err
+	//}
+	////con_.Query()
+	//h := url.QueryEscape(q_.Get("fn"))
+	//p_ := con_.String() +"&"+h+"&fn="+h
+	//q := con_.Query()
+	//q.Set("fn",q_.Get("fn"))
+	////q.Set(q_.Get("fn"),"")
+	////q.Set("fn","jclongquanyiqu/longquanjiedao")
+	////con_.EscapedPath()
+	////p_ := con_.Scheme +"://"+con_.Host+con_.Path+"?"+q.Encode()
+	////p_ := con_.String()+"&"+v.Encode()
+	//fmt.Println(p_)
+	//return  ClientHttp(p_,"GET",200,nil,func(body io.Reader)error{
+	//	rand.Seed(time.Now().UnixNano())
+	//	q.Set("r_",fmt.Sprintf("%.16f",rand.Float64()))
+	//	return ClientHttp(con_.Scheme +"://"+con_.Host+"/uycyw/uymanage/tree/menutree.htm?"+q.Encode(),"GET",200,nil,func(body io.Reader)error{
+	//		buf := bufio.NewReader(body)
+	//		key := "varzNodes="
+	//		keyLen := len(key)
+	//		for{
+	//			line,err := buf.ReadString('\n')
+	//			if err != nil {
+	//				if err == io.EOF {
+	//					break
+	//				}
+	//				panic(err)
+	//			}
+	//			line = reg.ReplaceAllString(line,"")
+	//			if len(line) <= keyLen{
+	//				continue
+	//			}
+	//			//fmt.Println(line)
+	//			if strings.Contains(line[:keyLen],key){
+	//				db_:=[]map[string]interface{}{}
+	//				line = line[keyLen:len(line)-1]
+	//				err = json.Unmarshal([]byte(line),&db_)
+	//				if err != nil {
+	//					panic(err)
+	//				}
+	//				for _,d := range db_{
+	//					if d["name"].(string) == "招聘求职"{
+	//						ClassID = d["id"].(string)
+	//						//return nil
+	//					}
+	//				}
+	//				if ClassID == ""{
+	//					panic("--")
+	//				}
+	//				return nil
+	//			}
+	//		}
+	//		return nil
+	//	})
+	//})
 }
 func SaveSiteDB(title string,content string,dateTime int64) error {
 
@@ -158,7 +241,10 @@ func SaveSiteDB(title string,content string,dateTime int64) error {
 	//db.Add("EMAIL","")
 	//db.Add("ADDRESS","")
 	//db.Add("ID","")
-	return ClientPost("http://jcpt.chengdu.gov.cn/uycyw/SupplyAndDemand/save.jsp","POST",200,db,Conf.Header,func(body io.Reader)error{
+
+	he := Conf.Header
+	he.Add("Content-Type","application/x-www-form-urlencoded")
+	return ClientPost("http://jcpt.chengdu.gov.cn/uycyw/SupplyAndDemand/save.jsp","POST",200,db,he,func(body io.Reader)error{
 		//fmt.Println(db)
 		doc,err := goquery.NewDocumentFromReader(body)
 		if err != nil {

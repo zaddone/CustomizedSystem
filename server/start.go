@@ -223,6 +223,7 @@ func ClientPost(path string,ty string,statu int,body map[string]string,h http.He
 
 }
 func ClientHttp_(path string,ty string,statu int,body *url.Values,h http.Header, hand func(io.Reader)error) error {
+	//time.Sleep(time.Second*5)
 	var r io.Reader
 	if body == nil {
 		r = nil
@@ -294,7 +295,7 @@ func ClientDo(path string, hand func(io.Reader,*http.Response)error) error {
 	}
 	Req.Header = Conf.Header
 
-	fmt.Println(path)
+	//fmt.Println(path)
 	Cli := &http.Client{Jar:Jar}
 	res, err := Cli.Do(Req)
 	//var Client http.Client

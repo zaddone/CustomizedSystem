@@ -157,7 +157,10 @@ func loadRouter(){
 		key := "window.location.href"
 		read := "/cdform/cdmanage/vjsp/main.jsp"
 		isOk := false
-		err := ClientHttp(inurl,"POST",200,user_info,func(body io.Reader)error{
+
+		he := Conf.Header
+		he.Add("Content-Type","application/x-www-form-urlencoded")
+		err := ClientHttp_(inurl,"POST",200,user_info,he,func(body io.Reader)error{
 			buf := bufio.NewReader(body)
 			for{
 				line,err := buf.ReadString('\n')
