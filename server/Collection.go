@@ -9,10 +9,11 @@ import(
 	//"database/sql"
 	"strings"
 	"strconv"
-	"net/http"
+	//"net/http"
+	"net/url"
 	"encoding/json"
 	"time"
-	"log"
+	//"log"
 	//"math"
 	"math/rand"
 )
@@ -137,18 +138,27 @@ func Collection() {
 	//	return
 	//}
 
-	err := ClientDo(Conf.WeixinUrl,func(body io.Reader,res *http.Response)error{
+	ur,err := url.Parse(Conf.WeixinUrl)
+	if err != nil {
+		panic(err)
+	}
+	key := ur.Query().Get("query")
+	//key := res.Request.PostForm.Get("query")
+	err = ClientHttp(Conf.WeixinUrl,"GET",200,nil,func(body io.Reader)error{
 		doc,err := goquery.NewDocumentFromReader(body)
 		if err != nil {
 			//fmt.Println(err)
 			return err
 		}
+		//fmt.Println(Conf.WeixinUrl)
+		//fmt.Println(doc.Text())
 
 		k:= "this.href.substr(a+4+parseInt("
 		var str string
 		var val int64
 		doc.Find("script").EachWithBreak(func(i int,s *goquery.Selection)bool {
 			str = s.Text()
+			//fmt.Println(str)
 			n := strings.Index(str,k)
 			if n != -1{
 				n+=len(k)+1
@@ -162,7 +172,6 @@ func Collection() {
 			}
 			return true
 		})
-		key := res.Request.PostForm.Get("query")
 		var href_url string
 		exit := false
 		doc.Find(".news-list2 li").EachWithBreak(func(i int, s *goquery.Selection)bool {
@@ -187,19 +196,24 @@ func Collection() {
 			return true
 		})
 		if !exit {
-			err = Open(Conf.WeixinUrl)
-			if err != nil {
-				log.Println(err)
-			}
+			return io.EOF
+			//err = Open(Conf.WeixinUrl)
+			//if err != nil {
+			//log.Println(err)
+			//}
 		}
 		return err
 	})
 	if err != nil {
-		fmt.Println(err)
-		err = Open(Conf.WeixinUrl)
-		if err != nil {
-			log.Println(err)
+		if err != io.EOF {
+			fmt.Println(err)
+			time.Sleep(time.Second*3)
+			Collection()
 		}
+		//err = Open(Conf.WeixinUrl)
+		//if err != nil {
+		//	log.Println(err)
+		//}
 	}
 
 }

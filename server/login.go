@@ -55,9 +55,9 @@ func inSite1(_url string) error {
 		if err != nil {
 			return err
 		}
-		u,b := doc.Find("iframe").Attr("src")
+		u,_ := doc.Find("iframe").Attr("src")
 		//fmt.Println(_url)
-		fmt.Println(u,b)
+		//fmt.Println(u,b)
 		con_,err := url.Parse(u)
 		if err != nil {
 			return err
