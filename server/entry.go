@@ -183,7 +183,7 @@ func (self *Entry) HandContent(){
 			fmt.Println(err)
 			return err
 		}
-		var styleId int64 = 0
+		var styleId int64 = 1
 		doc.Find("#page-content p").EachWithBreak(func(i int, s *goquery.Selection) bool {
 			text :=s.Text()
 			str := reg.ReplaceAllString(text,"")
@@ -202,7 +202,10 @@ func (self *Entry) HandContent(){
 			//		styleId = 1
 			//	}
 			//}
-			if str == "关注" {
+			if strings.HasPrefix(str,"微信号") || strings.HasPrefix(str,"功能介绍") {
+				return true
+			}
+			if strings.HasPrefix(str,"关注"){
 				return false
 			}
 			var tag []string

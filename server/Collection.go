@@ -187,9 +187,13 @@ func Collection() {
 					//err = ClientDo(href_url,func(body io.Reader,res *http.Response)error{
 					header := Conf.Header
 					header.Add("Referer",Conf.WeixinUrl)
+					fmt.Println(href_url)
 					err=ClientHttp_(href_url,"GET",200,nil,header, func(body io.Reader)error {
 						return WeixinUrlEnc(body)
 					})
+					if err != nil {
+						fmt.Println(err)
+					}
 					return false
 				}
 			}
@@ -215,5 +219,6 @@ func Collection() {
 		//	log.Println(err)
 		//}
 	}
+	fmt.Println("over Coll")
 
 }
