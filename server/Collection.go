@@ -138,6 +138,13 @@ func Collection() {
 	//	return
 	//}
 
+	pvurl :=fmt.Sprintf("https://pb.sogou.com/pv.gif?uigs_productid=webapp&type=antispider&subtype=refresh&domain=weixin&suv=&snuid=&t=",time.Now().Unix())
+	err := ClientHttp(pvurl,"GET",200,nil,nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	ur,err := url.Parse(Conf.WeixinUrl)
 	if err != nil {
 		panic(err)
